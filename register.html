@@ -1,163 +1,119 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Checkout</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Form Register (LocalStorage)</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f9fafb;margin:0;padding:20px}
-    h1{text-align:center;margin-bottom:20px}
-    .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.05);margin-bottom:16px}
-    .item{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    .item:last-child{margin-bottom:0}
-    .total{font-weight:bold;font-size:18px;text-align:right;margin-top:10px}
-    .radio-group{display:flex;gap:20px;margin-top:10px}
-    .radio-group label{display:flex;align-items:center;gap:6px;margin:0}
-    .hidden{display:none}
-    button{margin-top:20px;width:100%;padding:12px;border:none;background:#2563eb;color:#fff;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer}
-    .warning{color:#b91c1c;font-size:14px;margin-top:8px}
+    :root{--bg:#f6f8fb;--card:#ffffff;--accent:#2563eb;--muted:#6b7280}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%);display:flex;align-items:center;justify-content:center;padding:32px}
+    .card{width:100%;max-width:460px;background:var(--card);border-radius:12px;box-shadow:0 6px 22px rgba(37,99,235,0.08);padding:22px}
+    h1{margin:0 0 8px;font-size:20px}
+    p.lead{margin:0 0 18px;color:var(--muted);font-size:13px}
+    .field{margin-bottom:12px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:#111827}
+    input[type=text],input[type=tel],input[type=password]{width:100%;padding:10px 12px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
+    .row{display:flex;gap:10px}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid #dbe7ff}
+    .muted{color:var(--muted);font-size:13px}
+    .msg{margin:12px 0;padding:10px;border-radius:8px;font-size:13px}
+    .msg.success{background:#ecfdf5;color:#065f46}
+    .msg.error{background:#fff1f2;color:#991b1b}
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
   </style>
 </head>
 <body>
-  <h1>Checkout</h1>
+  <main class="card">
+    <h1>Register</h1>
+    <p class="lead">Masukkan nama, nomor WhatsApp, dan password. Setelah berhasil, Anda akan diarahkan ke halaman login.</p>
 
-  <div class="card" id="cartList"></div>
+    <form id="registerForm" autocomplete="off">
+      <div class="field">
+        <label for="name">Nama lengkap</label>
+        <input id="name" name="name" type="text" placeholder="Nama Anda" required />
+      </div>
 
-  <div class="card">
-    <h3>Data Pembeli</h3>
-    <p><strong>Nama:</strong> <span id="buyerName">-</span></p>
-    <p><strong>Nomor WhatsApp:</strong> <span id="buyerWa">-</span></p>
-  </div>
+      <div class="field">
+        <label for="wa">Nomor WA</label>
+        <input id="wa" name="wa" type="tel" placeholder="08123456789 atau +628123456789" required
+               pattern="^\+?\d{8,15}$" title="Hanya angka, boleh diawali +, 8-15 digit" />
+      </div>
 
-  <div class="card">
-    <h3>Metode Pembayaran</h3>
-    <div class="radio-group">
-      <label><input type="radio" name="payment" value="dana"> DANA</label>
-      <label><input type="radio" name="payment" value="cash"> Cash</label>
-    </div>
+      <div class="field row">
+        <div style="flex:1">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Minimal 6 karakter" required minlength="6" />
+        </div>
+        <div style="width:90px;align-self:end">
+          <label style="visibility:hidden">show</label>
+          <button type="button" id="togglePwd" class="btn ghost">Tampilkan</button>
+        </div>
+      </div>
 
-    <!-- Info DANA -->
-    <div id="danaInfo" class="hidden" style="margin-top:10px;">
-      <p><strong>Nomor DANA:</strong> <span style="color:#2563eb;font-weight:600;">085174146390</span></p>
-      <p><strong>Atas Nama:</strong> <span style="color:#16a34a;font-weight:600;">Cihuyy</span></p>
-      <p class="warning">⚠️ Pastikan nomor tujuan dan jumlah transfer sesuai dengan total yang tertera agar pesanan dapat diproses.</p>
-    </div>
+      <div class="controls">
+        <button type="submit" class="btn">Register</button>
+      </div>
+    </form>
 
-    <!-- Upload Box -->
-    <div id="uploadBox" class="hidden upload-box">
-      <label for="proof">Upload Bukti Pembayaran</label>
-      <input type="file" id="proof" accept="image/*">
-      <p class="note">📸 Unggah screenshot bukti transfer Anda di sini</p>
-    </div>
-  </div>
-
-
-  <button id="confirmBtn">Konfirmasi Pesanan</button>
+    <div id="message"></div>
+  </main>
 
   <script>
-    const KEY_CART = 'cart';
-    const KEY_USER = 'users'; // pastikan register.html menyimpan di key ini
-    const products = [
-      {id:1,name:'Sepatu Sport',price:350000},
-      {id:2,name:'Tas Ransel',price:250000},
-      {id:3,name:'Headphone',price:150000},
-      {id:4,name:'Jam Tangan',price:500000}
-    ];
+    const KEY = 'users';
 
-    function formatRp(n){
-      return 'Rp ' + n.toLocaleString('id-ID');
-    }
+    const form = document.getElementById('registerForm');
+    const msgEl = document.getElementById('message');
+    const toggleBtn = document.getElementById('togglePwd');
+    const pwdInput = document.getElementById('password');
 
-    function renderCart(){
-      const cartData = JSON.parse(localStorage.getItem(KEY_CART) || '{}');
-      const container = document.getElementById('cartList');
-      container.innerHTML = '<h3>Daftar Produk</h3>';
-      let total = 0;
-      let hasItem = false;
-
-      for(const id in cartData){
-        if(!Object.prototype.hasOwnProperty.call(cartData, id)) continue;
-        const qty = cartData[id];
-        const product = products.find(p=>p.id == id);
-        if(product && qty > 0){
-          hasItem = true;
-          const sub = product.price * qty;
-          total += sub;
-          container.innerHTML += `
-            <div class="item">
-              <span>${product.name} x ${qty}</span>
-              <span>${formatRp(sub)}</span>
-            </div>
-          `;
-        }
-      }
-
-      if(!hasItem){
-        container.innerHTML += '<p>Keranjang kosong.</p>';
-      }
-
-      container.innerHTML += `<div class="total">Total: ${formatRp(total)}</div>`;
-    }
-
-    function fillBuyerData(){
-      const raw = localStorage.getItem(KEY_USER);
-      if(!raw) return; // tidak ada data user
-
-      let userData;
+    function readUsers(){
       try {
-        userData = JSON.parse(raw);
-      } catch (e) {
-        userData = raw;
-      }
-
-      if(Array.isArray(userData) && userData.length > 0){
-        userData = userData[0];
-      }
-
-      const nameEl = document.getElementById('buyerName');
-      const waEl = document.getElementById('buyerWa');
-
-      if(userData && typeof userData === 'object'){
-        nameEl.textContent = userData.name || '-';
-        waEl.textContent = userData.wa || '-';
-      } else {
-        nameEl.textContent = userData || '-';
-        waEl.textContent = '-';
-      }
+        return JSON.parse(localStorage.getItem(KEY) || '[]');
+      } catch(e){ return []; }
     }
 
-    // toggle upload box & info DANA
-    document.querySelectorAll('input[name="payment"]').forEach(radio=>{
-      radio.addEventListener('change', (e)=>{
-        if(e.target.value === 'dana'){
-          document.getElementById('uploadBox').classList.remove('hidden');
-          document.getElementById('danaInfo').classList.remove('hidden');
-        } else {
-          document.getElementById('uploadBox').classList.add('hidden');
-          document.getElementById('danaInfo').classList.add('hidden');
-        }
-      });
-    });
+    function saveUsers(list){
+      localStorage.setItem(KEY, JSON.stringify(list));
+    }
 
-    document.getElementById('confirmBtn').addEventListener('click',()=>{
-      const buyerName = document.getElementById('buyerName').textContent;
-      const buyerWa = document.getElementById('buyerWa').textContent;
-      const payment = document.querySelector('input[name="payment"]:checked');
-      if(!payment){
-        alert('Pilih metode pembayaran terlebih dahulu!');
+    function showMessage(text,type='success'){
+      msgEl.innerHTML = `<div class="msg ${type==='success'? 'success':'error'}">${text}</div>`;
+    }
+
+    function escapeHtml(s){
+      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    }
+
+    form.addEventListener('submit', e =>{
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const wa = form.wa.value.trim();
+      const password = form.password.value;
+
+      if(name.length < 1){ showMessage('Nama tidak boleh kosong','error'); return; }
+      if(!/^\+?\d{8,15}$/.test(wa)){ showMessage('Nomor WA tidak valid','error'); return; }
+      if(password.length < 6){ showMessage('Password minimal 6 karakter','error'); return; }
+
+      const users = readUsers();
+      if(users.some(u=>u.wa === wa)){
+        showMessage('Nomor WA sudah terdaftar','error');
         return;
       }
-      if(payment.value === 'dana' && !document.getElementById('proof').files.length){
-        alert('Upload bukti pembayaran terlebih dahulu!');
-        return;
-      }
-      alert(`Pesanan berhasil dikonfirmasi! Terima kasih, ${buyerName}. Kami akan hubungi via WhatsApp ${buyerWa}.`);
-      localStorage.removeItem(KEY_CART);
-      window.location.href = 'index.html';
+
+      users.push({name, wa, password});
+      saveUsers(users);
+      form.reset();
+      showMessage('Registrasi berhasil ✅, mengarahkan ke login...','success');
+      setTimeout(()=>{ window.location.href = 'login.html'; }, 1500);
     });
 
-    renderCart();
-    fillBuyerData();
+    toggleBtn.addEventListener('click', ()=>{
+      if(pwdInput.type === 'password'){
+        pwdInput.type = 'text'; toggleBtn.textContent = 'Sembunyikan';
+      } else { pwdInput.type = 'password'; toggleBtn.textContent = 'Tampilkan'; }
+    });
   </script>
 </body>
 </html>
