@@ -32,6 +32,30 @@
   <div class="cart-fab" id="cartFab">🛒</div>
 
   <script>
+  
+  function checkLogin() {
+  // Ambil data user yang sedang login dari localStorage
+  const loggedInUser = localStorage.getItem("loggedInUser");
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+
+  // Jika tidak ada user yang login
+  if (!loggedInUser) {
+    alert("Silakan login terlebih dahulu!");
+    window.location.href = "login.html"; // arahkan ke halaman login
+    return;
+  }
+
+  // Cek apakah user yang login valid di daftar users
+  const user = users.find(u => u.name === loggedInUser);
+  if (!user) {
+    alert("User tidak ditemukan, silakan login kembali!");
+    localStorage.removeItem("loggedInUser"); // hapus session
+    window.location.href = "login.html";
+  }
+}
+
+// Jalankan saat halaman di-load
+checkLogin();
     const KEY_CART = 'cart';
     const products = [
       {id:1,name:'Sepatu Sport',price:350000,img:'https://picsum.photos/id/21/400/300'},
