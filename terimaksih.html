@@ -1,0 +1,68 @@
+<?php
+session_start(); 
+if(isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('location: index.php');
+    exit;
+}
+
+?>
+<?php
+
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard </title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        h3 {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 5px black; 
+        }
+
+        button {
+            background: crimson;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: black;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <h3>TERIMA KASIH SUDAH ORDER</h3>
+
+    <form action="dashboard.php" method="POST">
+         <button type="submit" name="logout">Logout</button>
+    </form>
+
+    
+</body>
+</html>
