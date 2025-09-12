@@ -45,13 +45,8 @@
     return;
   }
 
-  // Cek apakah user yang login valid di daftar users
-  const user = users.find(u => u.name === loggedInUser);
-  if (!user) {
-    alert("User tidak ditemukan, silakan login kembali!");
-    localStorage.removeItem("loggedInUser"); // hapus session
-    window.location.href = "login.html";
-  }
+
+  
 }
 
 // Jalankan saat halaman di-load
