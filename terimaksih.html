@@ -1,16 +1,4 @@
-<?php
-session_start(); 
-if(isset($_POST['logout'])) {
-    session_unset();
-    session_destroy();
-    header('location: index.php');
-    exit;
-}
 
-?>
-<?php
-
-!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -61,6 +49,7 @@ if(isset($_POST['logout'])) {
 
     <form action="dashboard.php" method="POST">
          <button type="submit" name="logout">Logout</button>
+         <button onclick="window.location.href='index.html'">Kembali ke Beranda</button>
     </form>
 
     
