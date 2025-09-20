@@ -1,90 +1,84 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Form Register (LocalStorage)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register</title>
   <style>
-    :root{--bg:rgb(122, 85, 255);--card:#ffffff;--accent:#2563eb;--muted:#6b7280}
-    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
-    body{
-      margin:0;
-      min-height:100vh;
-      background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%);
+    * {margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;}
+    body {
+      height:100vh;
       display:flex;
-      align-items:center;
       justify-content:center;
-      padding:32px;
+      align-items:center;
+      background:url('bg.jpg') no-repeat center center/cover; /* ✅ sama seperti login */
     }
-    .card{
+    .register-box {
+      background:rgba(255,255,255,0.9);
+      padding:30px 25px;
+      border-radius:10px;
+      width:320px;
+      box-shadow:0 4px 15px rgba(0,0,0,0.15);
+      text-align:center;
+    }
+    .register-box h2 {
+      font-size:20px;
+      font-weight:bold;
+      margin-bottom:20px;
+      color:#000;
+    }
+    .register-box input {
       width:100%;
-      max-width:460px;
-      background:var(--card);
-      border-radius:12px;
-      box-shadow:0 6px 22px rgba(37,99,235,0.08);
-      padding:22px;
+      padding:10px;
+      margin-bottom:15px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:14px;
+      outline:none;
     }
-    h1{margin:0 0 8px;font-size:20px;text-align:center}
-    p.lead{margin:0 0 18px;color:var(--muted);font-size:13px;text-align:center}
-    .field{margin-bottom:12px}
-    label{display:block;font-size:13px;margin-bottom:6px;color:#111827}
-    input[type=text],input[type=tel],input[type=password]{
-      width:100%;padding:10px 12px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px
+    .register-box input:focus {
+      border-color:#000;
     }
-    .row{display:flex;gap:10px}
-    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
-    .btn.ghost{background:transparent;color:var(--accent);border:1px solid #dbe7ff}
-    .muted{color:var(--muted);font-size:13px;text-align:center}
-    .msg{margin:12px 0;padding:10px;border-radius:8px;font-size:13px}
-    .msg.success{background:#ecfdf5;color:#065f46}
-    .msg.error{background:#fff1f2;color:#991b1b}
-    .controls{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+    .register-box button {
+      width:100%;
+      padding:10px;
+      background:#000;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      font-size:15px;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.3s;
+    }
+    .register-box button:hover {
+      background:#333;
+    }
+    .msg {
+      margin-top:12px;
+      font-size:13px;
+      padding:8px;
+      border-radius:4px;
+    }
+    .msg.success {background:#d1fae5;color:#065f46;}
+    .msg.error {background:#fee2e2;color:#991b1b;}
   </style>
 </head>
 <body>
-  
-  <main class="card">
-    <h1>Register</h1>
-    <p class="lead">Silakan isi data diri Anda</p>
-
-    <form id="registerForm" autocomplete="off">
-      <div class="field">
-        <label for="name">Nama lengkap</label>
-        <input id="name" name="name" type="text" placeholder="Nama Anda" required />
-      </div>
-
-      <div class="field">
-        <label for="wa">Nomor WA</label>
-        <input id="wa" name="wa" type="tel" placeholder="08123456789 atau +628123456789" required
-               pattern="^\+?\d{8,15}$" title="Hanya angka, boleh diawali +, 8-15 digit" />
-      </div>
-
-      <div class="field row">
-        <div style="flex:1">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Minimal 6 karakter" required minlength="6" />
-        </div>
-        <div style="width:90px;align-self:end">
-          <label style="visibility:hidden">show</label>
-          <button type="button" id="togglePwd" class="btn ghost">Tampilkan</button>
-        </div>
-      </div>
-
-      <div class="controls">
-        <button type="submit" class="btn">Register</button>
-      </div>
+  <div class="register-box">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <input type="text" id="name" name="name" placeholder="Nama Lengkap" required>
+      <input type="tel" id="wa" name="wa" placeholder="Nomor WhatsApp" required>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <button type="submit">Daftar</button>
     </form>
-
     <div id="message"></div>
-  </main>
+    <div class="muted">Sudah punya akun? <a href="login.html">Login</a></div>
+  </div>
 
   <script>
     const KEY = 'users';
-
-    const form = document.getElementById('registerForm');
-    const msgEl = document.getElementById('message');
-    const toggleBtn = document.getElementById('togglePwd');
-    const pwdInput = document.getElementById('password');
 
     function readUsers(){
       try {
@@ -92,16 +86,15 @@
       } catch(e){ return []; }
     }
 
-    function saveUsers(list){
-      localStorage.setItem(KEY, JSON.stringify(list));
+    function saveUsers(users){
+      localStorage.setItem(KEY, JSON.stringify(users));
     }
+
+    const form = document.getElementById('registerForm');
+    const msgEl = document.getElementById('message');
 
     function showMessage(text,type='success'){
-      msgEl.innerHTML = `<div class="msg ${type==='success'? 'success':'error'}">${text}</div>`;
-    }
-
-    function escapeHtml(s){
-      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+      msgEl.innerHTML = `<div class="msg ${type}">${text}</div>`;
     }
 
     form.addEventListener('submit', e =>{
@@ -110,27 +103,17 @@
       const wa = form.wa.value.trim();
       const password = form.password.value;
 
-      if(name.length < 1){ showMessage('Nama tidak boleh kosong','error'); return; }
-      if(!/^\+?\d{8,15}$/.test(wa)){ showMessage('Nomor WA tidak valid','error'); return; }
-      if(password.length < 6){ showMessage('Password minimal 6 karakter','error'); return; }
-
-      const users = readUsers();
-      if(users.some(u=>u.wa === wa)){
+      let users = readUsers();
+      if(users.find(u=>u.wa === wa)){
         showMessage('Nomor WA sudah terdaftar','error');
         return;
       }
 
-      users.push({name, wa, password});
+      users.push({name,wa,password});
       saveUsers(users);
-      form.reset();
-      showMessage('Registrasi berhasil ✅, mengarahkan ke login...','success');
-      setTimeout(()=>{ window.location.href = 'login.html'; }, 1500);
-    });
 
-    toggleBtn.addEventListener('click', ()=>{
-      if(pwdInput.type === 'password'){
-        pwdInput.type = 'text'; toggleBtn.textContent = 'Sembunyikan';
-      } else { pwdInput.type = 'password'; toggleBtn.textContent = 'Tampilkan'; }
+      showMessage('Registrasi berhasil ✅','success');
+      setTimeout(()=>{ window.location.href = 'login.html'; }, 1200);
     });
   </script>
 </body>
