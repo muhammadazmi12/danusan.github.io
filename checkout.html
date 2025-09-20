@@ -11,27 +11,13 @@
     .item{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
     .item:last-child{margin-bottom:0}
     .total{font-weight:bold;font-size:18px;text-align:right;margin-top:10px}
+    label{display:block;margin:8px 0 4px}
+    input,textarea{padding:8px;width:100%;border:1px solid #ccc;border-radius:6px}
+    textarea{resize:vertical;min-height:60px}
     .radio-group{display:flex;gap:20px;margin-top:10px}
     .radio-group label{display:flex;align-items:center;gap:6px;margin:0}
     .hidden{display:none}
     button{margin-top:20px;width:100%;padding:12px;border:none;background:#2563eb;color:#fff;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer}
-    .upload-box{
-      margin-top:15px;
-      padding:15px;
-      border:2px dashed #2563eb;
-      border-radius:10px;
-      background:#f0f9ff;
-      text-align:center;
-    }
-    .upload-box label{
-      display:block;
-      font-weight:600;
-      margin-bottom:8px;
-      color:#1e3a8a;
-    }
-    .upload-box input[type="file"]{margin:5px 0;}
-    .upload-box .note{font-size:13px;color:#475569;margin-top:5px}
-    .warning{color:#b91c1c;font-size:14px;margin-top:8px;font-weight:500}
   </style>
 </head>
 <body>
@@ -41,8 +27,12 @@
 
   <div class="card">
     <h3>Data Pembeli</h3>
-    <p><strong>Nama:</strong> <span id="buyerName">-</span></p>
-    <p><strong>Nomor WhatsApp:</strong> <span id="buyerWa">-</span></p>
+    <label>Nama</label>
+    <input type="text" id="buyerName" required>
+    <label>Nomor WhatsApp</label>
+    <input type="text" id="buyerWa" required>
+    <label>Alamat</label>
+    <textarea id="buyerAddress" required></textarea>
   </div>
 
   <div class="card">
@@ -51,19 +41,15 @@
       <label><input type="radio" name="payment" value="dana"> DANA</label>
       <label><input type="radio" name="payment" value="cash"> Cash</label>
     </div>
-
-    <!-- Info DANA -->
-    <div id="danaInfo" class="hidden" style="margin-top:10px;">
-      <p><strong>Nomor DANA:</strong> <span style="color:#2563eb;font-weight:600;">085174146390</span></p>
-      <p><strong>Atas Nama:</strong> <span style="color:#16a34a;font-weight:600;">Cihuyy</span></p>
-      <p class="warning">⚠️ Pastikan nomor tujuan dan jumlah transfer sesuai dengan total yang tertera agar pesanan dapat diproses.</p>
-    </div>
-
-    <!-- Upload Box -->
-    <div id="uploadBox" class="hidden upload-box">
-      <label for="proof">Upload Bukti Pembayaran</label>
+    <!-- jika pilih dana -->
+    <div id="uploadBox" class="hidden">
+      <label>Upload Bukti Pembayaran (screenshot)</label>
       <input type="file" id="proof" accept="image/*">
-      <p class="note">📸 Unggah screenshot bukti transfer Anda di sini</p>
+    </div>
+    <!-- jika pilih cash -->
+    <div id="noteBox" class="hidden">
+      <label>Catatan</label>
+      <textarea id="cashNote" placeholder="Contoh: COD, diantarkan ke rumah, uang pas, dll."></textarea>
     </div>
   </div>
 
@@ -71,14 +57,13 @@
 
   <script>
     const KEY_CART = 'cart';
-    const KEY_USER = 'loggedInUser';
-    const ENDPOINT = "https://script.google.com/macros/s/AKfycbytPPUdeWp6LLi6Rn2bOyEWVkvdxqEe7uHRF6ypjXJtPlyEU58sqj10XpZ0lGuI5sw/exec";
-
+    const KEY_USER = 'users';
+    const KEY_NOTE = 'lastNote'; // simpan catatan terakhir
     const products = [
-      {id:1,name:'Telor Gulung',price:5000},
-      {id:2,name:'Cilok Bumbu Kacang',price:5000},
-      {id:3,name:'Cireng Isi Ayam',price:10000},
-      {id:4,name:'Air Doa',price:15000}
+      {id:1,name:'lumpia',price:5000},
+      {id:2,name:'cilok',price:5000},
+      {id:3,name:'cireng',price:10000},
+      {id:4,name:'air',price:15000}
     ];
 
     function formatRp(n){
@@ -86,18 +71,15 @@
     }
 
     function renderCart(){
-      const cartData = JSON.parse(localStorage.getItem(KEY_CART) || '{}');
+      const cartData = JSON.parse(localStorage.getItem(KEY_CART)) || {};
       const container = document.getElementById('cartList');
       container.innerHTML = '<h3>Daftar Produk</h3>';
       let total = 0;
-      let hasItem = false;
 
       for(const id in cartData){
-        if(!Object.prototype.hasOwnProperty.call(cartData, id)) continue;
         const qty = cartData[id];
-        const product = products.find(p=>p.id == id);
-        if(product && qty > 0){
-          hasItem = true;
+        const product = products.find(p=>p.id==id);
+        if(product){
           const sub = product.price * qty;
           total += sub;
           container.innerHTML += `
@@ -109,124 +91,75 @@
         }
       }
 
-      if(!hasItem){
-        container.innerHTML += '<p>Keranjang kosong.</p>';
-      }
-
       container.innerHTML += `<div class="total">Total: ${formatRp(total)}</div>`;
     }
 
     function fillBuyerData(){
-      const raw = localStorage.getItem(KEY_USER);
-      if(!raw) return; // tidak ada data user
-
-      let userData;
-      try {
-        userData = JSON.parse(raw);
-      } catch (e) {
-        userData = raw;
+      let userData = localStorage.getItem(KEY_USER);
+      if(userData){
+        userData = JSON.parse(userData);
+        if(Array.isArray(userData)) userData = userData[0];
+        if(userData.name) document.getElementById('buyerName').value = userData.name;
+        if(userData.wa) document.getElementById('buyerWa').value = userData.wa;
+        if(userData.address) document.getElementById('buyerAddress').value = userData.address;
       }
 
-      if(Array.isArray(userData) && userData.length > 0){
-        userData = userData[0];
-      }
-
-      const nameEl = document.getElementById('buyerName');
-      const waEl = document.getElementById('buyerWa');
-
-      if(userData && typeof userData === 'object'){
-        nameEl.textContent = userData.name || '-';
-        waEl.textContent = userData.wa || '-';
-      } else {
-        nameEl.textContent = userData || '-';
-        waEl.textContent = '-';
+      // isi catatan terakhir kalau ada
+      const lastNote = localStorage.getItem(KEY_NOTE);
+      if(lastNote){
+        document.getElementById('cashNote').value = lastNote;
       }
     }
 
-    function getCartData(){
-      const cartData = JSON.parse(localStorage.getItem(KEY_CART) || '{}');
-      let items = [];
-      let total = 0;
-      for(const id in cartData){
-        if(!Object.prototype.hasOwnProperty.call(cartData, id)) continue;
-        const qty = cartData[id];
-        const product = products.find(p=>p.id == id);
-        if(product && qty > 0){
-          const sub = product.price * qty;
-          total += sub;
-          items.push({
-            name: product.name,
-            qty: qty,
-            price: product.price,
-            subtotal: sub
-          });
-        }
-      }
-      return {items, total};
-    }
-
-    // toggle upload box & info DANA
+    // toggle sesuai pilihan pembayaran
     document.querySelectorAll('input[name="payment"]').forEach(radio=>{
-      radio.addEventListener('change', (e)=>{
-        if(e.target.value === 'dana'){
+      radio.addEventListener('change',()=>{
+        if(radio.value==='dana'){
           document.getElementById('uploadBox').classList.remove('hidden');
-          document.getElementById('danaInfo').classList.remove('hidden');
+          document.getElementById('noteBox').classList.add('hidden');
         } else {
           document.getElementById('uploadBox').classList.add('hidden');
-          document.getElementById('danaInfo').classList.add('hidden');
+          document.getElementById('noteBox').classList.remove('hidden');
         }
       });
     });
 
-    document.getElementById('confirmBtn').addEventListener('click', async ()=>{
-      const buyerName = document.getElementById('buyerName').textContent;
-      const buyerWa = document.getElementById('buyerWa').textContent;
+    document.getElementById('confirmBtn').addEventListener('click',()=>{
+      const name = document.getElementById('buyerName').value.trim();
+      const wa = document.getElementById('buyerWa').value.trim();
+      const address = document.getElementById('buyerAddress').value.trim();
       const payment = document.querySelector('input[name="payment"]:checked');
 
-      if(!payment){
-        alert('Pilih metode pembayaran terlebih dahulu!');
+      if(!name || !wa || !address || !payment){
+        alert('Lengkapi data terlebih dahulu!');
+        return;
+      }
+      if(payment.value==='dana' && !document.getElementById('proof').files.length){
+        alert('Upload bukti pembayaran terlebih dahulu!');
         return;
       }
 
-      const cartInfo = getCartData();
-      if(cartInfo.items.length === 0){
-        alert('Keranjang masih kosong!');
-        return;
+      let cashNote = '';
+      if(payment.value==='cash'){
+        cashNote = document.getElementById('cashNote').value.trim();
+        localStorage.setItem(KEY_NOTE, cashNote); // simpan catatan terakhir
       }
 
-      const formData = new FormData();
-      formData.append("name", buyerName);
-      formData.append("wa", buyerWa);
-      formData.append("payment", payment.value);
-      formData.append("cart", JSON.stringify(cartInfo.items));
-      formData.append("total", cartInfo.total);
+      // update data user dengan alamat terbaru
+      let userData = JSON.parse(localStorage.getItem(KEY_USER)) || {};
+      if(Array.isArray(userData)) userData = userData[0];
+      userData.name = name;
+      userData.wa = wa;
+      userData.address = address;
+      localStorage.setItem(KEY_USER, JSON.stringify(userData));
 
-      if(payment.value === "dana"){
-        const proofFile = document.getElementById('proof').files[0];
-        if(!proofFile){
-          alert("Upload bukti pembayaran terlebih dahulu!");
-          return;
-        }
-        formData.append("proof", proofFile);
-      }
+      // tampilkan pesan konfirmasi
+      let msg = `Pesanan berhasil dikonfirmasi!\n\nNama: ${name}\nWA: ${wa}\nAlamat: ${address}\nPembayaran: ${payment.value}`;
+      if(cashNote) msg += `\nCatatan: ${cashNote}`;
+      alert(msg);
 
-      try {
-        const res = await fetch(ENDPOINT, {
-          method: "POST",
-          body: formData
-        });
-
-        if(res.ok){
-          alert(`Pesanan berhasil dikonfirmasi! Terima kasih, ${buyerName}. Kami akan hubungi via WhatsApp ${buyerWa}.`);
-          localStorage.removeItem(KEY_CART);
-          window.location.href = 'index.html';
-        } else {
-          alert("Gagal mengirim data, coba lagi.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Terjadi kesalahan saat mengirim data.");
-      }
+      localStorage.removeItem(KEY_CART);
+      window.location.href = 'terimaksih.html';
     });
 
     renderCart();
