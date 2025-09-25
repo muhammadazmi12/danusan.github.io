@@ -1,154 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="icon.png">
   <title>Checkout</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f1f5f9;
+    body{font-family:Arial,Helvetica,sans-serif;background:#f9fafb;margin:0;padding:20px}
+    h1{text-align:center;margin-bottom:20px}
+    .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.05);margin-bottom:16px}
+    .item{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .item:last-child{margin-bottom:0}
+    .total{font-weight:bold;font-size:18px;text-align:right;margin-top:10px}
+    .radio-group{display:flex;gap:20px;margin-top:10px}
+    .radio-group label{display:flex;align-items:center;gap:6px;margin:0}
+    button{margin-top:20px;width:100%;padding:12px;border:none;background:#2563eb;color:#fff;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer}
+
+    /* === Popup Loading === */
+    .overlay{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;
+      z-index:9999;visibility:hidden;opacity:0;transition:0.3s;
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
+    .overlay.show{visibility:visible;opacity:1}
+    .popup{
+      background:#fff;padding:30px 40px;border-radius:12px;text-align:center;
+      display:flex;flex-direction:column;align-items:center;gap:15px;
+      box-shadow:0 4px 15px rgba(0,0,0,0.2);
     }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    .loader{
+      border:5px solid #f3f3f3;
+      border-top:5px solid #2563eb;
+      border-radius:50%;
+      width:50px;height:50px;
+      animation:spin 1s linear infinite;
     }
-    .card h2 {
-      margin-top: 0;
-      font-size: 18px;
-      margin-bottom: 12px;
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .checkmark{
+      width:50px;height:50px;border-radius:50%;
+      background:#22c55e;position:relative;display:none;
     }
-    .produk-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-      font-size: 15px;
-    }
-    .produk-item:last-child {
-      border-bottom: none;
-    }
-    .total {
-      text-align: right;
-      font-weight: bold;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    label {
-      font-weight: bold;
-      font-size: 14px;
-    }
-    .hidden {
-      display: none;
-    }
-    .pay-options {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .pay-options button {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: bold;
-      background: #e2e8f0;
-      color: #333;
-    }
-    .pay-options button.active {
-      background: navy;
-      color: white;
-    }
-    button#pesanBtn {
-      width: 100%;
-      padding: 12px;
-      background: navy;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button#pesanBtn:hover {
-      background: #001f54;
+    .checkmark::after{
+      content:"";position:absolute;left:14px;top:12px;width:14px;height:28px;
+      border:solid #fff;border-width:0 5px 5px 0;transform:rotate(45deg);
     }
   </style>
 </head>
 <body>
-
   <h1>Checkout</h1>
 
-  <!-- Daftar Produk -->
-  <div class="card" id="produkCard">
-    <h2>Daftar Produk</h2>
-    <div id="produkList"></div>
-    <div class="total" id="totalHarga">Total: Rp 0</div>
-  </div>
+  <div class="card" id="cartList"></div>
 
-  <!-- Data Pembeli -->
   <div class="card">
-    <h2>Data Pembeli</h2>
-    <label>Nama</label>
-    <input type="text" id="nama" placeholder="Nama lengkap">
-    <label>Nomor WhatsApp</label>
-    <input type="text" id="wa" placeholder="08xxxxxxxxxx">
-    <label>Alamat</label>
-    <textarea id="alamat" rows="3" placeholder="Alamat lengkap"></textarea>
+    <h3>Data Pembeli</h3>
+    <p><strong>Nama:</strong> <span id="buyerName">-</span></p>
+    <p><strong>Nomor WhatsApp:</strong> <span id="buyerWa">-</span></p>
+    <p><strong>Alamat:</strong> <span id="buyerAdd">-</span></p>
   </div>
 
-  <!-- Metode Pembayaran -->
   <div class="card">
-    <h2>Metode Pembayaran</h2>
-    <div class="pay-options">
-      <button type="button" id="btnCash">Cash</button>
-      <button type="button" id="btnTransfer">Transfer</button>
-    </div>
-
-    <!-- Cash -->
-    <div id="cashForm" class="hidden">
-      <label>Catatan</label>
-      <textarea id="catatanCash" rows="3" placeholder="Contoh: Uang pas, jangan pedas, dll."></textarea>
-    </div>
-
-    <!-- Transfer -->
-    <div id="transferForm" class="hidden">
-      <p>Kirim ke GoPay <b>087123567896 (Kevin)</b></p>
-      <label>Upload Bukti Pembayaran</label>
-      <input type="file" id="bukti">
-      <label>Catatan</label>
-      <textarea id="catatanTransfer" rows="3" placeholder="Contoh: Kirim cepat, tanpa sedotan, dll."></textarea>
+    <h3>Metode Pembayaran</h3>
+    <div class="radio-group">
+      <label><input type="radio" name="payment" value="cash"> Cash</label>
+      <label><input type="radio" name="payment" value="transfer"> Transfer</label>
     </div>
   </div>
 
-  <!-- Tombol Pesan -->
-  <button id="pesanBtn">Pesan Sekarang</button>
+  <button id="confirmBtn">Konfirmasi Pesanan</button>
+
+  <!-- Popup Loading -->
+  <div class="overlay" id="overlay">
+    <div class="popup">
+      <div class="loader" id="loader"></div>
+      <div class="checkmark" id="checkmark"></div>
+      <p id="popupText">Sedang Konfirmasi Pesanan...</p>
+    </div>
+  </div>
 
   <script>
-    // Ambil cart dari localStorage
-    const cart = JSON.parse(localStorage.getItem("cart")) || {};
-    const produkList = document.getElementById("produkList");
-    const totalHarga = document.getElementById("totalHarga");
+    const KEY_CART = 'cart';
+    const KEY_USER = 'loggedInUser';
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbxDKvIGUVCocGhYNm2LaFn-cMdCrKRHAXYd2eFp0L65GhJBCVbFyRsU61Lm_Ss7Qts/exec"; 
 
     const products = [
       {id:1,name:'Mochi',price:10000},
@@ -163,56 +95,114 @@
       {id:10,name:'Jus Rambutan',price:10000}
     ];
 
-    function formatRp(n){
-      return 'Rp ' + n.toLocaleString('id-ID');
-    }
+    function formatRp(n){return 'Rp ' + n.toLocaleString('id-ID');}
 
-    // Render daftar produk di keranjang
-    let total = 0;
-    for(const id in cart){
-      const qty = cart[id];
-      const produk = products.find(p => p.id == id);
-      if(produk){
-        const subtotal = produk.price * qty;
-        total += subtotal;
-        const item = document.createElement("div");
-        item.className = "produk-item";
-        item.innerHTML = `
-          <span>${produk.name} x ${qty}</span>
-          <span>${formatRp(subtotal)}</span>
-        `;
-        produkList.appendChild(item);
+    function renderCart(){
+      const cartData = JSON.parse(localStorage.getItem(KEY_CART) || '{}');
+      const container = document.getElementById('cartList');
+      container.innerHTML = '<h3>Daftar Produk</h3>';
+      let total = 0;let hasItem=false;
+
+      for(const id in cartData){
+        if(!Object.prototype.hasOwnProperty.call(cartData, id)) continue;
+        const qty = cartData[id];
+        const product = products.find(p=>p.id == id);
+        if(product && qty > 0){
+          hasItem = true;
+          const sub = product.price * qty;total += sub;
+          container.innerHTML += `
+            <div class="item">
+              <span>${product.name} x ${qty}</span>
+              <span>${formatRp(sub)}</span>
+            </div>`;
+        }
       }
+      if(!hasItem){container.innerHTML += '<p>Keranjang kosong.</p>';}
+      container.innerHTML += `<div class="total">Total: ${formatRp(total)}</div>`;
     }
-    totalHarga.textContent = "Total: " + formatRp(total);
 
-    // Toggle pembayaran pakai tombol
-    const btnCash = document.getElementById("btnCash");
-    const btnTransfer = document.getElementById("btnTransfer");
-    const cashForm = document.getElementById("cashForm");
-    const transferForm = document.getElementById("transferForm");
+    function fillBuyerData(){
+      const raw = localStorage.getItem(KEY_USER);
+      if(!raw) return;
+      let userData;
+      try{userData=JSON.parse(raw);}catch(e){userData=raw;}
+      if(Array.isArray(userData)&&userData.length>0){userData=userData[0];}
+      const nameEl=document.getElementById('buyerName');
+      const waEl=document.getElementById('buyerWa');
+      const addEl=document.getElementById('buyerAdd');
+      if(userData&&typeof userData==='object'){
+        nameEl.textContent=userData.name||'-';
+        waEl.textContent=userData.wa||'-';
+        addEl.textContent=userData.address||'-';
+      }else{nameEl.textContent=userData||'-';waEl.textContent='-';}
+    }
 
-    btnCash.addEventListener("click", ()=>{
-      btnCash.classList.add("active");
-      btnTransfer.classList.remove("active");
-      cashForm.classList.remove("hidden");
-      transferForm.classList.add("hidden");
+    function getCartData(){
+      const cartData=JSON.parse(localStorage.getItem(KEY_CART)||'{}');
+      let items=[];let total=0;
+      for(const id in cartData){
+        if(!Object.prototype.hasOwnProperty.call(cartData,id)) continue;
+        const qty=cartData[id];
+        const product=products.find(p=>p.id==id);
+        if(product&&qty>0){
+          const sub=product.price*qty;total+=sub;
+          items.push({id:product.id,name:product.name,qty,price:product.price,subtotal:sub});
+        }
+      }
+      return {items,total};
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', async ()=>{
+      const buyerName=document.getElementById('buyerName').textContent;
+      const buyerWa=document.getElementById('buyerWa').textContent;
+      const buyerAdd=document.getElementById('buyerAdd').textContent;
+      const payment=document.querySelector('input[name="payment"]:checked');
+      if(!payment){alert('Pilih metode pembayaran terlebih dahulu!');return;}
+
+      const cartInfo=getCartData();
+      if(cartInfo.items.length===0){alert('Keranjang masih kosong!');return;}
+
+      // tampilkan popup loading
+      const overlay=document.getElementById('overlay');
+      const loader=document.getElementById('loader');
+      const checkmark=document.getElementById('checkmark');
+      const popupText=document.getElementById('popupText');
+      overlay.classList.add('show');
+      loader.style.display='block';
+      checkmark.style.display='none';
+      popupText.textContent='Sedang Konfirmasi Pesanan...';
+
+      const formData=new FormData();
+      formData.append("name",buyerName);
+      formData.append("wa",buyerWa);
+      formData.append("addres",buyerAdd);
+      formData.append("payment",payment.value);
+      formData.append("total",cartInfo.total);
+      for(let i=1;i<=10;i++){formData.append(`produk${i}`,0);}
+      cartInfo.items.forEach(item=>{formData.set(`produk${item.id}`,item.qty);});
+
+      try{
+        const res=await fetch(ENDPOINT,{method:"POST",body:formData});
+        if(res.ok){
+          // tampilkan centang
+          loader.style.display='none';
+          checkmark.style.display='block';
+          popupText.textContent="Terima kasih telah Belanja di Kami. Pesanan akan di konfirmasi di whatsapp";
+          localStorage.removeItem(KEY_CART);
+          setTimeout(()=>{window.location.href='index.html';},2000);
+        }else{
+          alert("Gagal mengirim data, coba lagi.");
+          overlay.classList.remove('show');
+        }
+      }catch(err){
+        console.error(err);
+        alert("Terjadi kesalahan saat mengirim data.");
+        overlay.classList.remove('show');
+      }
     });
 
-    btnTransfer.addEventListener("click", ()=>{
-      btnTransfer.classList.add("active");
-      btnCash.classList.remove("active");
-      transferForm.classList.remove("hidden");
-      cashForm.classList.add("hidden");
-    });
-
-    // Tombol pesan
-    document.getElementById("pesanBtn").addEventListener("click", ()=>{
-      alert("Pesanan berhasil dikirim!");
-      localStorage.removeItem("cart");
-      window.location.href = "index.html";
-    });
+    renderCart();
+    fillBuyerData();
   </script>
-
 </body>
 </html>

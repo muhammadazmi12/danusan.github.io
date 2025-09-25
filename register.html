@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="png" href="icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Register</title>
   <style>
@@ -11,13 +12,13 @@
       display:flex;
       justify-content:center;
       align-items:center;
-      background:url('bg.jpg') no-repeat center center/cover; /* ✅ sama seperti login */
+      background:url('bg.jpg') no-repeat center center/cover;
     }
     .register-box {
       background:whitesmoke;
       padding:30px 25px;
       border-radius:10px;
-      width:320px;
+      width:340px;
       box-shadow:0 4px 15px rgba(0,0,0,0.15);
       text-align:center;
     }
@@ -69,6 +70,8 @@
     <h2>Register</h2>
     <form id="registerForm">
       <input type="text" id="name" name="name" placeholder="Nama Lengkap" required>
+      <!-- ✅ Alamat manual -->
+      <input type="text" id="address" name="address" placeholder="Alamat Lengkap" required>
       <input type="tel" id="wa" name="wa" placeholder="Nomor WhatsApp" required>
       <input type="password" id="password" name="password" placeholder="Password" required>
       <button type="submit">Daftar</button>
@@ -100,6 +103,7 @@
     form.addEventListener('submit', e =>{
       e.preventDefault();
       const name = form.name.value.trim();
+      const address = form.address.value.trim();
       const wa = form.wa.value.trim();
       const password = form.password.value;
 
@@ -109,7 +113,7 @@
         return;
       }
 
-      users.push({name,wa,password});
+      users.push({name,address,wa,password});
       saveUsers(users);
 
       showMessage('Registrasi berhasil ✅','success');
