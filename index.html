@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="png" href="icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>E-MARKETPLACE</title>
   <style>
@@ -106,6 +107,41 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
     }
+
+    /* Modal custom */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-content h3 {
+      margin: 0 0 10px;
+      color: #001f3f;
+    }
+    .modal-content p {
+      margin: 0 0 15px;
+      color: #333;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
   </style>
 </head>
 <body>
@@ -125,6 +161,15 @@
     <h2>Minuman</h2>
     <div class="products" id="drinkList"></div>
   </section>
+
+  <!-- Modal Custom -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <h3>Anda Belum Login</h3>
+      <p>Silahkan login terlebih dahulu</p>
+      <button id="btnLogin">Login Sekarang</button>
+    </div>
+  </div>
 
   <script>
     const foods = [
@@ -205,6 +250,33 @@
 
     renderAll();
     updateCartCount();
+
+    // 🔒 Cek login
+    window.addEventListener("DOMContentLoaded", () => {
+      const userStr = localStorage.getItem("loggedInUser");
+      let user = null;
+
+      try {
+        user = JSON.parse(userStr);
+      } catch (e) {
+        user = null;
+      }
+
+      if (!user || !user.name) {
+        const modal = document.getElementById("loginModal");
+        modal.style.display = "flex";
+
+        // Klik tombol login
+        document.getElementById("btnLogin").onclick = () => {
+          window.location.href = "login.html";
+        };
+
+        // Auto redirect 2 detik
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 2000);
+      }
+    });
   </script>
 </body>
 </html>
